@@ -27,13 +27,31 @@ for img in 2016/05/26/*.jpg; do
   fi
 done
 
-# Create a temporary file for the ffmpeg input list
+# Create a temporary file for the ffmpeg input list and subtitles
 FFMPEG_INPUT_LIST=$(mktemp)
+SUBTITLES_FILE=$(mktemp).srt
+FRAME_DURATION_MS=42  # 1/24 second in milliseconds
+
 awk '{print "file \x27" $0 "\x27"}' "$FILTERED_IMAGES" > "$FFMPEG_INPUT_LIST"
 
-# Create the timelapse video using filtered images
+# Generate subtitles from filenames
+START_TIME_MS=0
+INDEX=1
+while read -r img; do
+  FILENAME=$(basename "$img" .jpg)
+  END_TIME_MS=$((START_TIME_MS + FRAME_DURATION_MS))
+  printf "%d\n%02d:%02d:%02d,%03d --> %02d:%02d:%02d,%03d\n%s\n\n" \
+    "$INDEX" \
+    $((START_TIME_MS/3600000)) $(((START_TIME_MS%3600000)/60000)) $(((START_TIME_MS%60000)/1000)) $((START_TIME_MS%1000)) \
+    $((END_TIME_MS/3600000)) $(((END_TIME_MS%3600000)/60000)) $(((END_TIME_MS%60000)/1000)) $((END_TIME_MS%1000)) \
+    "$FILENAME" >> "$SUBTITLES_FILE"
+  START_TIME_MS=$END_TIME_MS
+  INDEX=$((INDEX + 1))
+done < "$FILTERED_IMAGES"
+
+# Create the timelapse video using filtered images and add subtitles
 ffmpeg -f concat -safe 0 -i "$FFMPEG_INPUT_LIST" \
-  -vf "scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease" \
+  -vf "scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,subtitles=${SUBTITLES_FILE}" \
   -r 24 \
   -c:v libx264 \
   -crf ${CRF_QUALITY} \
@@ -41,4 +59,4 @@ ffmpeg -f concat -safe 0 -i "$FFMPEG_INPUT_LIST" \
   _timelapse_${TIMESTAMP}.mp4
 
 # Clean up
-rm "$FILTERED_IMAGES" "$FFMPEG_INPUT_LIST"
+rm "$FILTERED_IMAGES" "$FFMPEG_INPUT_LIST" "$SUBTITLES_FILE"
