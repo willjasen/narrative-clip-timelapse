@@ -33,7 +33,7 @@ awk '{print "file \x27" $0 "\x27"}' "$FILTERED_IMAGES" > "$FFMPEG_INPUT_LIST"
 
 # Create the timelapse video using filtered images
 ffmpeg -f concat -safe 0 -i "$FFMPEG_INPUT_LIST" \
-  -vf "scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,pad=${WIDTH}:${HEIGHT}:(ow-iw)/2:(oh-ih)/2" \
+  -vf "scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease" \
   -r 24 \
   -c:v libx264 \
   -crf ${CRF_QUALITY} \
