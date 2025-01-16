@@ -34,17 +34,23 @@ FRAME_DURATION_MS=42  # 1/24 second in milliseconds
 
 awk '{print "file \x27" $0 "\x27"}' "$FILTERED_IMAGES" > "$FFMPEG_INPUT_LIST"
 
-# Generate subtitles from filenames
+# Generate subtitles from timestamps
 START_TIME_MS=0
 INDEX=1
 while read -r img; do
   FILENAME=$(basename "$img" .jpg)
+  UTC_TIMESTAMP=$(echo "$FILENAME" | sed 's/_/ /g')
+  EST_TIMESTAMP=$(date -j -f "%Y%m%d %H%M%S" -v-4H "$UTC_TIMESTAMP" +"%Y-%m-%d %-I:%M:%S %p" 2>/dev/null)
+  if date -j -f "%Y%m%d %H%M%S" -v-4H "$UTC_TIMESTAMP" 2>/dev/null | grep -q "EDT"; then
+    EST_TIMESTAMP=$(date -j -f "%Y%m%d %H%M%S" -v-5H "$UTC_TIMESTAMP" +"%Y-%m-%d %-I:%M:%S %p" 2>/dev/null)
+  fi
+  EST_TIMESTAMP=$(echo "$EST_TIMESTAMP" | sed 's/ 000//')
   END_TIME_MS=$((START_TIME_MS + FRAME_DURATION_MS))
   printf "%d\n%02d:%02d:%02d,%03d --> %02d:%02d:%02d,%03d\n%s\n\n" \
     "$INDEX" \
     $((START_TIME_MS/3600000)) $(((START_TIME_MS%3600000)/60000)) $(((START_TIME_MS%60000)/1000)) $((START_TIME_MS%1000)) \
     $((END_TIME_MS/3600000)) $(((END_TIME_MS%3600000)/60000)) $(((END_TIME_MS%60000)/1000)) $((END_TIME_MS%1000)) \
-    "$FILENAME" >> "$SUBTITLES_FILE"
+    "$EST_TIMESTAMP" >> "$SUBTITLES_FILE"
   START_TIME_MS=$END_TIME_MS
   INDEX=$((INDEX + 1))
 done < "$FILTERED_IMAGES"
