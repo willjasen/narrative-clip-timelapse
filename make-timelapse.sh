@@ -30,7 +30,7 @@ done
 # Create a temporary file for the ffmpeg input list and subtitles
 FFMPEG_INPUT_LIST=$(mktemp)
 SUBTITLES_FILE=$(mktemp).srt
-FRAME_DURATION_MS=42  # 1/24 second in milliseconds
+FRAME_DURATION_MS=40  # Slightly shorten the duration to fit all timestamps
 
 awk '{print "file \x27" $0 "\x27"}' "$FILTERED_IMAGES" > "$FFMPEG_INPUT_LIST"
 
