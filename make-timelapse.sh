@@ -62,7 +62,7 @@ ffmpeg -f concat -safe 0 -i "$FFMPEG_INPUT_LIST" \
   -c:v libx264 \
   -crf ${CRF_QUALITY} \
   -pix_fmt yuv420p \
-  _timelapse_${TIMESTAMP}.mp4
+  timelapses/timelapse_${TIMESTAMP}.mp4
 
 # Clean up
 rm "$FILTERED_IMAGES" "$FFMPEG_INPUT_LIST" "$SUBTITLES_FILE"
