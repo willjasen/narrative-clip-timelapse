@@ -55,6 +55,14 @@ while read -r img; do
   INDEX=$((INDEX + 1))
 done < "$FILTERED_IMAGES"
 
+# Rename the last video by appending the current timestamp
+if [[ -f "timelapses/timelapse.mp4" ]]; then
+  mv "timelapses/timelapse.mp4" "timelapses/timelapse_${TIMESTAMP}.mp4"
+fi
+
+# Capture the number of pictures included before cleaning up
+NUM_PICTURES=$(wc -l < "$FILTERED_IMAGES" | xargs)
+
 # Create the timelapse video using filtered images and add subtitles
 ffmpeg -f concat -safe 0 -i "$FFMPEG_INPUT_LIST" \
   -vf "scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,subtitles=${SUBTITLES_FILE}" \
@@ -62,7 +70,14 @@ ffmpeg -f concat -safe 0 -i "$FFMPEG_INPUT_LIST" \
   -c:v libx264 \
   -crf ${CRF_QUALITY} \
   -pix_fmt yuv420p \
-  timelapses/timelapse_${TIMESTAMP}.mp4
+  timelapses/timelapse.mp4
 
 # Clean up
 rm "$FILTERED_IMAGES" "$FFMPEG_INPUT_LIST" "$SUBTITLES_FILE"
+
+# Echo the number of pictures included
+echo "Number of pictures included: $NUM_PICTURES"
+
+# Echo the duration of the video
+VIDEO_DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 timelapses/timelapse.mp4)
+echo "Video duration: ${VIDEO_DURATION} seconds"
