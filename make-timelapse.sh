@@ -2,14 +2,14 @@
 WIDTH=1920
 HEIGHT=1080
 CRF_QUALITY=32
-GLOB="2016/05/26/*.jpg"
+FRAME_RATE=24
 
 # Get the current timestamp
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
 # Filter images with aspect ratio over 0.85
 FILTERED_IMAGES=$(mktemp)
-for img in 2016/05/26/*.jpg; do
+for img in 2016/06/01/*.jpg; do
   # Skip images that have already been checked
   if [[ -f "${img}.checked" ]]; then
     echo "Skipping already checked $img"
@@ -66,7 +66,7 @@ NUM_PICTURES=$(wc -l < "$FILTERED_IMAGES" | xargs)
 # Create the timelapse video using filtered images and add subtitles
 ffmpeg -f concat -safe 0 -i "$FFMPEG_INPUT_LIST" \
   -vf "scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,subtitles=${SUBTITLES_FILE}" \
-  -r 24 \
+  -r ${FRAME_RATE} \
   -c:v libx264 \
   -crf ${CRF_QUALITY} \
   -pix_fmt yuv420p \

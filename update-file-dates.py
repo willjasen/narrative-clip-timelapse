@@ -132,7 +132,9 @@ def update_file_dates(directory, log_file):
     video_count = 0
     altered_pictures = 0
     altered_videos = 0
-    for root, _, files in os.walk(directory):
+    for root, dirs, files in os.walk(directory):
+        dirs.sort()  # Sort subdirectories alphabetically/numerically
+        files.sort()  # Sort files alphabetically/numerically
         for file in files:
             if file.endswith(('.jpg', '.jpeg', '.png')):
                 picture_count += 1
@@ -210,7 +212,9 @@ def verify_file_dates(directory, log_file):
     altered_videos = 0
     with open(log_file, 'w') as f:
         f.write("Verification Log\n")
-    for root, _, files in os.walk(directory):
+    for root, dirs, files in os.walk(directory):
+        dirs.sort()  # Sort subdirectories alphabetically/numerically
+        files.sort()  # Sort files alphabetically/numerically
         for file in files:
             if file.endswith(('.jpg', '.jpeg', '.png')):
                 picture_count += 1
